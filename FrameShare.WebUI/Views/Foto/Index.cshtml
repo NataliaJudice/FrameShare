@@ -1,0 +1,248 @@
+﻿@model FrameShare.WebUI.ViewModels.IndexViewModel
+
+@{
+    ViewData["Title"] = "Mural de Memórias";
+}
+
+<style>
+    :root {
+        --primary: #ec4899;
+        --secondary: #8b5cf6;
+        --text-dark: #0f172a;
+        --text-muted: #64748b;
+    }
+
+    /* TOOLBAR UPGRADE - Efeito Glassmorphism */
+    .toolbar-container {
+        display: flex;
+        gap: 15px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        padding: 12px 20px;
+        border-radius: 25px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 15px;
+        z-index: 1000;
+        margin-bottom: 30px;
+        border: 1px solid white;
+    }
+
+    .toolbar-item {
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .toolbar-item i {
+        position: absolute;
+        left: 12px;
+        color: var(--primary);
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    .custom-select {
+        appearance: none;
+        background-color: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 15px;
+        padding: 10px 35px 10px 40px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .custom-select:focus {
+        outline: none;
+        background-color: white;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+    }
+
+    .toolbar-item::after {
+        content: '▼';
+        font-size: 0.6rem;
+        position: absolute;
+        right: 15px;
+        color: var(--text-muted);
+        pointer-events: none;
+    }
+
+    /* GRID DA GALERIA */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        transition: opacity 0.3s ease;
+    }
+
+    .photo-card {
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .photo-wrapper {
+        aspect-ratio: 1/1;
+        position: relative;
+    }
+
+    .photo-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .photo-overlay {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.6));
+        padding: 15px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-download {
+        background: white;
+        color: var(--primary);
+        width: 45px; height: 45px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* RESPONSIVIDADE MOBILE */
+    @@media (max-width: 768px) {
+        .toolbar-container { margin: 0 10px 25px; padding: 10px; gap: 8px; flex-direction: column; }
+        .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 10px; }
+        .btn-download { width: 40px; height: 40px; }
+    }
+
+    /* BOTÃO CARREGAR MAIS */
+    .load-more-container { text-align: center; margin: 50px 0; }
+    .btn-load-more {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white; border: none; padding: 14px 40px; border-radius: 50px;
+        font-weight: 700; cursor: pointer; transition: all 0.3s;
+        box-shadow: 0 10px 20px -5px rgba(236, 72, 153, 0.4);
+        display: inline-flex; align-items: center; gap: 10px;
+    }
+    .btn-load-more:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+</style>
+
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Mural de Memórias</h2>
+        <p class="text-muted">Explore momentos únicos do evento</p>
+    </div>
+
+    <!-- FILTROS MODERNOS -->
+    <div class="toolbar-container">
+        <div class="toolbar-item">
+            <i data-lucide="arrow-up-down" size="18"></i>
+            <select id="ordemFotos" class="custom-select" onchange="resetarGaleria()">
+                <option value="desc">Mais Recentes</option>
+                <option value="asc">Mais Antigas</option>
+            </select>
+        </div>
+        <div class="toolbar-item">
+            <i data-lucide="filter" size="18"></i>
+            <select id="filtroMissao" class="custom-select" onchange="resetarGaleria()">
+                <option value="">Todas as Fotos</option>
+                @if(Model.Missao != null) {
+                    @foreach (var m in Model.Missao) {
+                        <option value="@m.Id">@m.Titulo</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+    
+    <!-- GRID DE FOTOS -->
+    <div id="galeriaFotos" class="gallery-grid">
+        @if (Model?.Fotos != null && Model.Fotos.Any()) {
+            <partial name="_FotosGaleriaPartial" model="Model.Fotos" />
+        }
+    </div>
+
+    <!-- CARREGAR MAIS -->
+    <div class="load-more-container">
+        <button id="btnVerMais" class="btn-load-more" onclick="carregarMais()">
+            <i data-lucide="refresh-cw" id="iconLoad" size="18"></i>
+            <span id="textLoad">Ver Mais Momentos</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    // Começamos em 1 porque o Controller já envia a página 0 no carregamento inicial da página
+    let paginaAtual = 1; 
+    const idEvento = 1; // Mantenha o ID do evento atual
+
+    async function resetarGaleria() {
+        const grid = document.getElementById('galeriaFotos');
+        const btn = document.getElementById('btnVerMais');
+        
+        // 1. Reset do estado
+        paginaAtual = 0; 
+        grid.style.opacity = '0.5';
+        grid.innerHTML = ''; // Limpa a grid para o novo filtro
+        
+        btn.disabled = false;
+        btn.classList.remove('btn-finished');
+        btn.innerHTML = '<i data-lucide="refresh-cw" size="18"></i> Ver Mais Momentos';
+
+        // 2. Carrega a primeira página (0) do novo filtro
+        await carregarMais(true);
+    }
+
+    async function carregarMais(isReset = false) {
+        const btn = document.getElementById('btnVerMais');
+        const grid = document.getElementById('galeriaFotos');
+        const ordem = document.getElementById('ordemFotos').value;
+        const missaoId = document.getElementById('filtroMissao').value;
+        
+        btn.disabled = true;
+
+        try {
+            // Se missaoId for vazio (Todas), enviamos null ou vazio para o Controller
+            const url = `/Foto/BuscarFotos?idEvento=${idEvento}&pagina=${paginaAtual}&ordem=${ordem}&missaoId=${missaoId}`;
+            
+            const response = await fetch(url);
+            
+            if (response.status === 204) {
+                if (isReset) grid.innerHTML = '<div class="col-12 text-center py-5 text-muted">Nenhuma foto para este filtro.</div>';
+                btn.innerHTML = 'Fim do Mural ✨';
+                btn.classList.add('btn-finished');
+                btn.disabled = true;
+                grid.style.opacity = '1';
+                return;
+            }
+
+            const html = await response.text();
+            
+            if (isReset) grid.innerHTML = html;
+            else grid.insertAdjacentHTML('beforeend', html);
+            
+            paginaAtual++; // Incrementa para a próxima busca
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="refresh-cw" size="18"></i> Ver Mais Momentos';
+            grid.style.opacity = '1';
+            
+            if (window.lucide) lucide.createIcons();
+
+        } catch (error) {
+            console.error("Erro ao filtrar:", error);
+            btn.disabled = false;
+            grid.style.opacity = '1';
+        }
+    }
+</script>

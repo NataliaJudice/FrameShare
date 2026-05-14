@@ -1,0 +1,304 @@
+﻿@model FrameShare.WebUI.ViewModels.IndexAdminViewModel
+
+<!-- DEPENDÊNCIAS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+    :root {
+        --primary: #ec4899;
+        --secondary: #8b5cf6;
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.5);
+    }
+
+    body {
+        background: linear-gradient(135deg, #fdf2f8 0%, #f5f3ff 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        font-family: 'Outfit', sans-serif;
+        padding-bottom: 110px; /* Espaço para o botão flutuante */
+    }
+
+    /* Estilo Glassmorphism Refinado */
+    .glass-effect {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    /* Header Estilo App Mobile */
+    .app-header {
+        padding: 24px 15px;
+        margin-bottom: 20px;
+    }
+
+    .admin-title {
+        font-weight: 800;
+        font-size: 1.7rem;
+        letter-spacing: -0.5px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Stats Grid Moderno */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card-glass {
+        padding: 16px;
+        text-align: left;
+    }
+
+    .stat-card-glass .val {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--primary);
+        display: block;
+    }
+
+    .stat-card-glass .lbl {
+        font-size: 0.7rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Lista de Missões em Cards (Mobile First) */
+    .mission-item {
+        margin-bottom: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: transform 0.2s;
+    }
+
+    .mission-item:active { transform: scale(0.97); }
+
+    .icon-container {
+        width: 45px;
+        height: 45px;
+        background: white;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    }
+
+    .mission-info { flex: 1; }
+    .mission-info h6 { font-weight: 700; margin-bottom: 2px; color: #1e293b; font-size: 0.95rem; }
+    .mission-info p { font-size: 0.8rem; color: #64748b; margin-bottom: 0; line-height: 1.2; }
+
+    .btn-delete-circle {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #fee2e2;
+        color: #ef4444;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+    }
+
+    /* Floating Action Button */
+    .fab {
+        position: fixed;
+        bottom: 30px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 20px rgba(236, 72, 153, 0.3);
+        border: none;
+        z-index: 1000;
+    }
+
+    /* Ajustes Modal */
+    .modal-content.glass-effect {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 30px;
+        border: 1px solid white;
+    }
+
+    .form-control-app {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0,0,0,0.05);
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 0.9rem;
+    }
+
+    .form-control-app:focus {
+        background: white;
+        box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+        border-color: var(--primary);
+    }
+</style>
+
+<div class="container-admin container">
+
+    <!-- HEADER -->
+    <div class="app-header d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="admin-title mb-0">Painel Admin</h1>
+            <span class="text-muted small fw-bold">FrameShare Live Event</span>
+        </div>
+        <a asp-controller="Foto" asp-action="Index" class="glass-effect p-2 px-3 text-decoration-none text-dark small fw-bold">
+            <i data-lucide="image" class="me-1" size="18"></i> Galeria
+        </a>
+    </div>
+
+    <!-- FEEDBACKS -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success glass-effect border-0 mb-4 py-3" role="alert" style="color: #16a34a;">
+            <i data-lucide="check-circle" class="me-2" size="18"></i> @TempData["Success"]
+        </div>
+    }
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat-card-glass glass-effect">
+            <span class="lbl">Fotos Coletadas</span>
+            <span class="val">128</span>
+        </div>
+        <div class="stat-card-glass glass-effect">
+            <span class="lbl">Missões Ativas</span>
+            <span class="val">@(Model?.Missao?.Count() ?? 0)</span>
+        </div>
+    </div>
+
+    <!-- LISTA DE MISSÕES -->
+    <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+        <h5 class="fw-bold mb-0" style="font-size: 1.1rem;">Missões Atuais</h5>
+        <span class="badge rounded-pill bg-white text-dark border">@DateTime.Now.ToString("dd MMM")</span>
+    </div>
+
+    <div class="mission-list">
+        @foreach (var m in Model.Missao)
+        {
+            <div class="mission-item glass-effect">
+                <div class="icon-container">
+                    <i data-lucide="camera" size="20"></i>
+                </div>
+                <div class="mission-info">
+                    <h6>@m.Titulo</h6>
+                    <p>@m.Descricao</p>
+                </div>
+                
+                <button type="button" onclick="prepararInativacao('@m.Id')" class="btn-delete-circle shadow-sm">
+                    <i data-lucide="trash-2" size="16"></i>
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- BOTÃO FLUTUANTE (NOVA MISSÃO) -->
+<button class="fab" data-bs-toggle="modal" data-bs-target="#modalCriarMissao">
+    <i data-lucide="plus" size="30"></i>
+</button>
+
+<!-- FORMULÁRIO OCULTO PARA INATIVAR -->
+<form id="formInativar" asp-controller="Missao" asp-action="Inativar" method="post" style="display:none;">
+    <input type="hidden" name="idMissao" id="inputMissaoId" />
+</form>
+
+<!-- MODAL CRIAR MISSÃO -->
+<div class="modal fade" id="modalCriarMissao" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered px-4">
+        <div class="modal-content glass-effect">
+            <div class="modal-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Lançar Missão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <form asp-controller="Missao" asp-action="Criar" method="post">
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted mb-2">Título Criativo</label>
+                        <input type="text" name="Titulo" class="form-control form-control-app" placeholder="Ex: Selfie com os Noivos" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="small fw-bold text-muted mb-2">O que os convidados devem fazer?</label>
+                        <textarea name="Descricao" class="form-control form-control-app" rows="3" placeholder="Descreva a missão aqui..." required></textarea>
+                    </div>
+                    <input type="hidden" name="Icone" value="camera">
+                    <button type="submit" class="btn w-100 py-3 fw-bold shadow-sm" 
+                            style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border-radius: 18px;">
+                        Publicar Missão
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE CONFIRMAÇÃO DE EXCLUSÃO -->
+<div class="modal fade" id="modalConfirmarInativar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered px-4">
+        <div class="modal-content glass-effect border-0">
+            <div class="modal-body p-4 text-center">
+                <div class="bg-light d-inline-block p-3 rounded-circle mb-3" style="color: #ef4444; background-color: #fee2e2 !important;">
+                    <i data-lucide="alert-triangle" size="32"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Encerrar Missão?</h5>
+                <p class="text-muted small mb-4">Esta missão não aparecerá mais para os convidados no mural.</p>
+                
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn w-100 py-2 fw-bold" data-bs-dismiss="modal" 
+                            style="border-radius: 12px; background: #f1f5f9; color: #64748b; border: none;">
+                        Voltar
+                    </button>
+                    <button type="button" id="btnConfirmarInativar" class="btn w-100 py-2 fw-bold" 
+                            style="border-radius: 12px; background: #ef4444; color: white; border: none;">
+                        Encerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Inicializa ícones
+    lucide.createIcons();
+
+    let missaoIdParaInativar = null;
+    const modalConfirm = new bootstrap.Modal(document.getElementById('modalConfirmarInativar'));
+
+    // Função para preparar a exclusão
+    function prepararInativacao(id) {
+        missaoIdParaInativar = id;
+        modalConfirm.show();
+    }
+
+    // Listener do botão de confirmação do modal
+    document.getElementById('btnConfirmarInativar').addEventListener('click', function() {
+        if (missaoIdParaInativar) {
+            document.getElementById('inputMissaoId').value = missaoIdParaInativar;
+            document.getElementById('formInativar').submit();
+        }
+    });
+</script>

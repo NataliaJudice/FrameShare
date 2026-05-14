@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="FrameShare.Application/FrameShare.Application.csproj" />
+  <Project Path="FrameShare.Domain/FrameShare.Domain.csproj" />
+  <Project Path="FrameShare.Infra.Data/FrameShare.Infra.Data.csproj" />
+  <Project Path="FrameShare.Infra.Ioc/FrameShare.Infra.Ioc.csproj" />
+  <Project Path="FrameShare.WebUI/FrameShare.WebUI.csproj" />
+</Solution>

@@ -1,0 +1,15 @@
+﻿@model IEnumerable<FrameShare.Domain.Entity.Foto>
+
+@foreach (var foto in Model)
+{
+    <div class="photo-card">
+        <div class="photo-wrapper">
+            <img src="@foto.UrlDrive" loading="lazy" alt="Momento FrameShare" />
+            <div class="photo-overlay">
+                <a href="@foto.UrlDrive" target="_blank" download="Foto_@foto.Id" class="btn-download">
+                    <i data-lucide="download" size="20"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+}
