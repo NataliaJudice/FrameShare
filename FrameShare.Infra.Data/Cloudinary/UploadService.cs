@@ -31,6 +31,21 @@ namespace FrameShare.Infra.Data.Cloudinary
             if (file == null || file.Length == 0)
                 throw new ArgumentException("Arquivo inválido.");
 
+            // 1. Lista de extensões de imagem permitidas (incluindo os formatos do iPhone)
+            var extensoesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif" };
+            var extensao = Path.GetExtension(file.FileName)?.ToLower() ?? "";
+
+            var contentType = file.ContentType?.ToLower() ?? "";
+
+            // 2. Validação inteligente: Aceita se a extensão estiver na lista OU se o navegador identificar como imagem
+            bool ehExtensaoValida = extensoesPermitidas.Contains(extensao);
+            bool ehContentTypeValido = contentType.StartsWith("image/");
+
+            if (!ehExtensaoValida && !ehContentTypeValido)
+            {
+                throw new ApplicationException("Formato de arquivo inválido. Por favor, envie apenas imagens (JPG, PNG, WEBP ou HEIC do iPhone).");
+            }
+
             try
             {
                 using var stream = file.OpenReadStream();
@@ -49,11 +64,13 @@ namespace FrameShare.Infra.Data.Cloudinary
                     return uploadResult.SecureUrl.ToString();
                 else
                     throw new Exception(uploadResult.Error.Message);
-                
+            }
+            catch (ApplicationException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                // Repassa o erro para o Controller tratar na UI
                 throw new Exception("Falha no upload ao Cloudinary: " + ex.Message);
             }
         }
