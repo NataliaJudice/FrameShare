@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js"></script>
 
 <style>
     :root {
@@ -382,18 +383,40 @@
     });
 
     // 🚀 UPLOAD LIVRE INTERCEPTADO VIA AJAX COM SWEETALERT
+    const opcoesCompressao = {
+    maxSizeMB: 2,          // Reduz a foto para no máximo 2MB antes de enviar
+    maxWidthOrHeight: 1920, // Dimensão máxima Full HD
+    useWebWorker: true
+    };
+
     async function enviarUploadLivre(event) {
     event.preventDefault();
     const fileInput = document.getElementById('fileInput');
-
     if (!fileInput.files || fileInput.files.length === 0) return;
 
+    Swal.fire({
+    title: 'Processando foto...',
+    text: 'Otimizando o tamanho para o varal digital.',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+    });
+
+    let arquivoParaEnviar = fileInput.files[0];
+
+    try {
+    // Comprime a foto direto no celular
+    arquivoParaEnviar = await imageCompression(arquivoParaEnviar, opcoesCompressao);
+    } catch (e) {
+    console.error("Erro na compressão nativa", e);
+    }
+
     const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
+    // Forçamos o nome do arquivo a ser limpo e terminar em .jpg
+    formData.append("file", arquivoParaEnviar, "upload_android.jpg");
 
     Swal.fire({
     title: 'Enviando sua foto...',
-    text: 'Salvando momento no varal digital.',
+    text: 'Salvando momento no mural.',
     allowOutsideClick: false,
     didOpen: () => { Swal.showLoading(); }
     });
@@ -405,29 +428,26 @@
     });
 
     const data = await response.json();
-
-    if (!response.ok) {
-    throw new Error(data.mensagem || "Ocorreu uma falha no upload.");
-    }
+    if (!response.ok) throw new Error(data.mensagem || "Falha no upload.");
 
     Swal.fire({
     icon: 'success',
     title: 'Enviado! ✨',
     text: data.mensagem,
     confirmButtonColor: '#ec4899'
-    }).then(() => {
-    location.reload();
-    });
+    }).then(() => { location.reload(); });
 
     } catch (error) {
     Swal.fire({
     icon: 'error',
     title: 'Erro no Upload',
-    text: error.message,
+    text: 'Ocorreu um problema ao processar a imagem. Tente tirar um print da foto e enviar!',
     confirmButtonColor: '#8b5cf6'
     });
     }
     }
+
+    
 
     // 🚀 UPLOAD POR MISSÃO INTERCEPTADO VIA AJAX COM SWEETALERT
     async function sendMissionPhoto() {

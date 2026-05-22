@@ -1,10 +1,17 @@
 using FrameShare.Infra.Ioc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = 52428800; // Libera até 50MB para o servidor aceitar a foto do Android
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
