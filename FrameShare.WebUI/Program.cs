@@ -13,6 +13,13 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartHeadersLengthLimit = int.MaxValue;
 });
 
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.ValueLengthLimit = 52428800;
+    options.MultipartBodyLengthLimit = 52428800; // 50 MB
+    options.MultipartHeadersLengthLimit = 52428800;
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddInfrastructure(builder.Configuration);
