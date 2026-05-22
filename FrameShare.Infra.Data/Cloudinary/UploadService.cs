@@ -10,7 +10,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace FrameShare.Infra.Data.Cloudinary
 {
