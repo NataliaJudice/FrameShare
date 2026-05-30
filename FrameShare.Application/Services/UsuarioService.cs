@@ -24,26 +24,18 @@ namespace FrameShare.Application.Services
             return _context.Usuario.FirstOrDefault(x => x.SlugLogin == slug);
         }
 
-        public async Task CriarConvidado(string nomeCompleto)
+        public async Task<Usuario> CriarConvidado(string nomeCompleto)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(nomeCompleto))
                     throw new ArgumentException("O nome completo do convidado é obrigatório.");
 
-                // Aplica a regra de negócio definida no seu StringHelper
-                string slugGerado = StringHelper.GerarSlug(nomeCompleto);
-
-                // CORRIGIDO: Alterado para AnyAsync() para não travar a thread do EF Core
-                bool slugJaExiste = await _context.Usuario.AnyAsync(u => u.SlugLogin == slugGerado);
-
-                if (slugJaExiste)
-                    throw new InvalidOperationException("Já existe um convidado cadastrado que gera esta mesma credencial.");
 
                 var novoUsuario = new Usuario
                 {
                     NomeCompleto = nomeCompleto.Trim(),
-                    SlugLogin = slugGerado,
+                    SlugLogin = $"convidado-{Guid.NewGuid().ToString().Substring(0, 8)}",
                     Role = "Convidado",
                     EventoId = 1
                 };
@@ -52,6 +44,7 @@ namespace FrameShare.Application.Services
 
                 // Persiste de forma assíncrona aguardando o banco responder
                 await _context.SaveChangesAsync();
+                return novoUsuario;
             }
             catch (ArgumentException) { throw; }
             catch (InvalidOperationException) { throw; }

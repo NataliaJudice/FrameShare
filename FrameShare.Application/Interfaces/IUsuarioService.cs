@@ -10,6 +10,6 @@ namespace FrameShare.Application.Interfaces
     public interface IUsuarioService
     {
        Task<Usuario> BuscarPorSlug(string slug) ;
-        Task CriarConvidado(string nomeCompleto);
+        Task<Usuario> CriarConvidado(string nomeCompleto);
     }
 }

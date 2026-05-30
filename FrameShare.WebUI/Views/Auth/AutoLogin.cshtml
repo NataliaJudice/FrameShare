@@ -1,0 +1,254 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Boas-vindas - FrameShare</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+        --primary: #d39e97;
+        --primary-dark: #b87d75;
+        --accent: #c9a067;
+        --bg-main: #fbf8f7;
+        --text-dark: #4a3e3d;
+        --text-muted: #8c7b79;
+        --card-shadow: 0 15px 35px rgba(211, 158, 151, 0.15);
+        }
+
+        body {
+        background-color: var(--bg-main);
+        background-image: radial-gradient(#fcedec 1px, transparent 1px);
+        background-size: 20px 20px;
+        font-family: 'Montserrat', sans-serif;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        color: var(--text-dark);
+        }
+
+        .login-card {
+        background: #ffffff;
+        border: 1px solid #f5e6e4;
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: var(--card-shadow);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        }
+
+        .brand-logo {
+        width: 60px;
+        height: 60px;
+        background: #fcedec;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-dark);
+        margin: 0 auto 15px;
+        border: 1px solid #f5e6e4;
+        }
+
+        .login-title {
+        font-family: 'Alex Brush', cursive;
+        font-size: 3.2rem;
+        color: var(--primary-dark);
+        margin-bottom: 2px;
+        }
+
+        .login-subtitle {
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 700;
+        margin-bottom: 25px;
+        }
+
+        .form-control-custom {
+        background: #faf6f5;
+        border: 1px solid #f2eae9;
+        border-radius: 30px;
+        padding: 12px 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        color: var(--text-dark);
+        }
+
+        .form-control-custom:focus {
+        outline: none;
+        background-color: white;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(211, 158, 151, 0.15);
+        }
+
+        .btn-login {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 12px;
+        width: 100%;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
+        margin-top: 20px;
+        transition: all 0.3s;
+        box-shadow: 0 6px 15px rgba(211, 158, 151, 0.3);
+        }
+
+        .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(211, 158, 151, 0.45);
+        filter: brightness(1.02);
+        }
+
+        .hint {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 20px;
+        line-height: 1.4;
+        font-weight: 500;
+        }
+
+        .loading-check {
+        display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginCard" class="login-card">
+        <div class="brand-logo">
+            <i data-lucide="heart" style="fill: var(--primary-dark); width: 24px; height: 24px;"></i>
+        </div>
+        <h2 class="login-title">Bem-vindo(a)</h2>
+        <div class="login-subtitle">Mural de Memórias</div>
+
+        <form id="autoLoginForm">
+            <div class="mb-3">
+                <input type="text"
+                       id="nomeCompleto"
+                       name="nomeCompleto"
+                       class="form-control form-control-custom"
+                       placeholder="Digite seu nome e sobrenome"
+                       required
+                       autocomplete="off"
+                       autofocus>
+            </div>
+
+            <button type="submit" class="btn-login">Entrar e Tirar Fotos</button>
+        </form>
+
+        <p class="hint">
+            <i data-lucide="info" size="13" style="vertical-align: middle; color: var(--accent); margin-right: 2px;"></i>
+            Insira seu nome para assinar as fotos enviadas no mural.
+        </p>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        document.addEventListener("DOMContentLoaded", async function () {
+        const localId = localStorage.getItem("frameshare_guest_id");
+        const localName = localStorage.getItem("frameshare_guest_name");
+
+        // SE JÁ EXISTIREM DADOS LOCAIS: Pula completamente a tela de criação do usuário
+        if (localId && localName) {
+        document.getElementById("loginCard").classList.add("loading-check");
+
+        Swal.fire({
+        title: 'Entrando no evento...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+        });
+
+        await renovarSessaoExistente(localId, localName);
+        }
+        });
+
+        // Evento do Form: Primeiro acesso (Não há LocalStorage salvo)
+        document.getElementById("autoLoginForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const nomeInput = document.getElementById("nomeCompleto").value;
+
+        Swal.fire({
+        title: 'Gerando sua credencial...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+        });
+
+        await criarNovoConvidado(nomeInput);
+        });
+
+        // EXECUTA APENAS NO PRIMEIRO QR CODE LIDO DO CELULAR
+        async function criarNovoConvidado(nome) {
+        try {
+        const formData = new URLSearchParams();
+        formData.append("nomeCompleto", nome);
+
+        const response = await fetch("/Auth/CriarConvidado", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+        // Salva os dados retornados do banco de dados no LocalStorage do celular
+        localStorage.setItem("frameshare_guest_id", data.usuarioId);
+        localStorage.setItem("frameshare_guest_name", data.nome);
+
+        window.location.href = "/DriveTest/Index";
+        } else {
+        Swal.fire({ icon: 'error', title: 'Erro', text: data.mensagem || 'Falha ao cadastrar.' });
+        }
+        } catch (error) {
+        Swal.fire({ icon: 'error', title: 'Erro', text: 'Instabilidade de conexão com o servidor.' });
+        }
+        }
+
+        // EXECUTA SE O CELULAR JÁ TIVER IDENTIFICAÇÃO (Rápido e sem tocar na tabela do banco)
+        async function renovarSessaoExistente(id, nome) {
+        try {
+        const formData = new URLSearchParams();
+        formData.append("usuarioId", id);
+        formData.append("nome", nome);
+
+        const response = await fetch("/Auth/RenovarSessao", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData
+        });
+
+        if (response.ok) {
+        // Cookie reemitido com sucesso! Vai direto para o Index
+        window.location.href = "/DriveTest/Index";
+        } else {
+        // Caso o cookie falhe por algum motivo, limpa o lixo local e exibe a tela limpa
+        localStorage.clear();
+        document.getElementById("loginCard").classList.remove("loading-check");
+        Swal.close();
+        }
+        } catch (error) {
+        Swal.fire({ icon: 'error', title: 'Erro', text: 'Falha ao validar credencial do evento.' });
+        document.getElementById("loginCard").classList.remove("loading-check");
+        }
+        }
+    </script>
+</body>
+</html>

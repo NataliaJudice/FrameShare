@@ -53,7 +53,7 @@ builder.Services.AddAuthentication(options => {
         OnChallenge = context => {
             // Isso impede o erro 401/403 "seco" e manda para sua tela de login
             context.HandleResponse();
-            context.Response.Redirect("/Auth/Login");
+            context.Response.Redirect("/Auth/AutoLogin");
             return Task.CompletedTask;
         }
     };
@@ -80,6 +80,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Auth}/{action=Login}");
+    pattern: "{controller=Auth}/{action=AutoLogin}");
 
 app.Run();

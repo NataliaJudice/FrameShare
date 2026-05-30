@@ -280,17 +280,19 @@
                     <i data-lucide="layout-grid"></i>
                     <span class="menu-text">Dashboard</span>
                 </a>
-
+                @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                {
                 <a asp-controller="Foto" asp-action="Index"
                    class="menu-item @(currentController == "Foto" && currentAction == "Index" ? "active" : "")">
                     <i data-lucide="globe"></i>
                     <span class="menu-text">Galeria Geral</span>
                 </a>
-                @* <a asp-controller="Foto" asp-action="GaleriaPessoal"
+                }
+                <a asp-controller="Foto" asp-action="GaleriaPessoal"
                    class="menu-item @(currentController == "Foto" && currentAction == "GaleriaPessoal" ? "active" : "")">
                     <i data-lucide="user"></i>
                     <span class="menu-text">Galeria Pessoal</span>
-                </a> *@
+                </a>
                 @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
                 {
                     <a asp-controller="DriveTest" asp-action="AdminIndex"
